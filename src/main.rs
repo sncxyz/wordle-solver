@@ -13,7 +13,19 @@ fn main() {
     let all_words = words.clone();
     let mut guess = Word::new(String::from("tares"));
     while words.len() > 1 {
-        println!("Guess \"{}\" ({} options)", guess, words.len());
+        if words.len() < 10 {
+            println!(
+                "Guess \"{}\" ({} options: {:?})",
+                guess,
+                words.len(),
+                words
+                    .iter()
+                    .map(|word| word.to_string())
+                    .collect::<Vec<_>>()
+            );
+        } else {
+            println!("Guess \"{}\" ({} options)", guess, words.len());
+        }
         loop {
             println!("What output did Wordle give you?");
             let mut input = String::new();

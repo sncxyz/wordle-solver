@@ -21,7 +21,11 @@ fn main() {
             println!("Invalid input.");
         }
     }
-    println!("Guess \"{}\" (1 option)", guess);
+    if words.len() == 0 {
+        println!("No options remain.");
+    } else {
+        println!("Guess \"{}\" (1 option)", guess);
+    }
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
 }

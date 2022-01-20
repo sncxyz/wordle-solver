@@ -14,15 +14,7 @@ fn main() {
     let mut guess = Word::new(String::from("tares"));
     while words.len() > 1 {
         if words.len() < 10 {
-            println!(
-                "Guess \"{}\" ({} options: {:?})",
-                guess,
-                words.len(),
-                words
-                    .iter()
-                    .map(|word| word.to_string())
-                    .collect::<Vec<_>>()
-            );
+            println!("Guess \"{}\" ({} options: {:?})", guess, words.len(), display_words(&words));
         } else {
             println!("Guess \"{}\" ({} options)", guess, words.len());
         }
@@ -63,6 +55,10 @@ fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
         }
     }
     lowest.0
+}
+
+fn display_words(words: &Vec<Word>) -> Vec<String> {
+    words.iter().map(|word| word.to_string()).collect()
 }
 
 fn all_words(name: &str) -> Vec<Word> {

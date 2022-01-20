@@ -5,7 +5,12 @@ use words::{Rule, Word};
 
 fn main() {
     println!("Output from Wordle formatted with 0 - black, 1 - gold, 2 - green e.g. 12001");
+    println!("Hard mode? (type \"y\" if so)");
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+    let hard = input.trim() == "y";
     let mut words = all_words("words.txt");
+    let all_words = words.clone();
     let mut guess = Word::new(String::from("tares"));
     while words.len() > 1 {
         println!("Guess \"{}\" ({} options)", guess, words.len());
@@ -15,24 +20,23 @@ fn main() {
             io::stdin().read_line(&mut input).unwrap();
             if let Some(rule) = Rule::new(guess, input.trim()) {
                 words.retain(|word| word.fits_rule(&rule));
-                guess = best_guess(&words);
+                match words.len() {
+                    0 => println!("No options remain."),
+                    1 => println!("Guess \"{}\" (1 option)", words[0]),
+                    _ => guess = best_guess(&words, if hard { &words } else { &all_words }),
+                }
                 break;
             }
             println!("Invalid input.");
         }
     }
-    if words.len() == 0 {
-        println!("No options remain.");
-    } else {
-        println!("Guess \"{}\" (1 option)", guess);
-    }
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
 }
 
-fn best_guess(words: &Vec<Word>) -> Word {
-    let mut lowest = (Word::new(String::from("aaaaa")), usize::MAX);
-    for &guess in words {
+fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
+    let mut lowest = (Word::new(String::from("     ")), usize::MAX);
+    for &guess in pool {
         let mut score = 0;
         for &target in words {
             let rule = Rule::calculate(guess, target);

@@ -40,6 +40,7 @@ fn main() {
 
 fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
     let mut lowest = (Word::new(String::from("     ")), usize::MAX);
+    let mut lowest_remaining = (Word::new(String::from("     ")), usize::MAX);
     for &guess in pool {
         let mut score = 0;
         for &target in words {
@@ -53,8 +54,15 @@ fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
         if score < lowest.1 {
             lowest = (guess, score);
         }
+        if score < lowest_remaining.1 && words.contains(&guess) {
+            lowest_remaining = (guess, score);
+        }
     }
-    lowest.0
+    if lowest_remaining.1 <= lowest.1 {
+        lowest_remaining.0
+    } else {
+        lowest.0
+    }
 }
 
 fn display_words(words: &Vec<Word>) -> Vec<String> {

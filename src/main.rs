@@ -35,8 +35,8 @@ fn main() {
 }
 
 fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
-    let mut lowest = (Word::new(String::from("     ")), usize::MAX);
-    let mut lowest_remaining = (Word::new(String::from("     ")), usize::MAX);
+    let mut lowest = (pool[0], usize::MAX);
+    let mut lowest_remaining = (pool[0], usize::MAX);
     for &guess in pool {
         let mut score = 0;
         for &target in words {

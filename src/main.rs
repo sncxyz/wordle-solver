@@ -13,11 +13,7 @@ fn main() {
     let all_words = words.clone();
     let mut guess = Word::new(String::from("tares"));
     while words.len() > 1 {
-        if words.len() < 10 {
-            println!("Guess \"{}\" ({} options: {:?})", guess, words.len(), display_words(&words));
-        } else {
-            println!("Guess \"{}\" ({} options)", guess, words.len());
-        }
+        println!("Guess \"{}\" ({} options, most common: {:?})", guess, words.len(), display_words(&words));
         loop {
             println!("What output did Wordle give you?");
             let mut input = String::new();
@@ -26,7 +22,7 @@ fn main() {
                 words.retain(|word| word.fits_rule(&rule));
                 match words.len() {
                     0 => println!("No options remain."),
-                    1 => println!("Guess \"{}\" (1 option)", words[0]),
+                    1 => println!("The word is \"{}\"", words[0]),
                     _ => guess = best_guess(&words, if hard { &words } else { &all_words }),
                 }
                 break;
@@ -66,7 +62,7 @@ fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
 }
 
 fn display_words(words: &Vec<Word>) -> Vec<String> {
-    words.iter().map(|word| word.to_string()).collect()
+    words.iter().take(5).map(|word| word.to_string()).collect()
 }
 
 fn all_words(name: &str) -> Vec<Word> {

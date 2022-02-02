@@ -4,7 +4,7 @@ use std::io::{self, BufRead, BufReader};
 use words::{Rule, Word};
 
 fn main() {
-    println!("Output from Wordle formatted with 0 - black, 1 - gold, 2 - green e.g. 12001");
+    println!("Output from Wordle formatted with [b]lack, [y]ellow, [g]reen]");
     println!("Hard mode? (type \"y\" if so)");
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();
@@ -120,9 +120,9 @@ mod words {
             let mut colours = [Black; 5];
             for (i, colour) in values.chars().enumerate() {
                 colours[i] = match colour {
-                    '0' => Black,
-                    '1' => Gold,
-                    '2' => Green,
+                    'b' => Black,
+                    'y' => Yellow,
+                    'g' => Green,
                     _ => return None,
                 };
             }
@@ -142,7 +142,7 @@ mod words {
                             && guess.letters[i] == target.letters[j]
                             && !used[j]
                         {
-                            colours[i] = Gold;
+                            colours[i] = Yellow;
                             used[j] = true;
                             break;
                         }
@@ -156,7 +156,7 @@ mod words {
     #[derive(Clone, Copy, PartialEq, Eq)]
     enum Colour {
         Green,
-        Gold,
+        Yellow,
         Black,
     }
 }

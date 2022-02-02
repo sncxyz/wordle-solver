@@ -4,7 +4,7 @@ use std::io::{self, BufRead, BufReader};
 use words::{Rule, Word};
 
 fn main() {
-    println!("Output from Wordle formatted with [b]lack, [y]ellow, [g]reen]");
+    println!("Output from Wordle formatted with [b]lack, [y]ellow, [g]reen");
     println!("Hard mode? (type \"y\" if so)");
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();

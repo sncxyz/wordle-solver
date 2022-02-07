@@ -39,8 +39,7 @@ fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
             *rules.entry(Rule::calculate(guess, word)).or_insert(0) += 1;
         }
         let score = rules.into_values().map(|count| count * count).sum();
-        if score < lowest.1
-            || (score == lowest.1 && words.contains(&guess) && !words.contains(&lowest.0))
+        if score < lowest.1 || (score == lowest.1 && words.contains(&guess) && !words.contains(&lowest.0))
         {
             lowest = (guess, score);
         }
@@ -68,9 +67,7 @@ mod words {
             if !c.is_ascii_lowercase() {
                 return None;
             }
-            Some(Letter {
-                value: c.to_ascii_uppercase() as u8,
-            })
+            Some(Letter { value: c.to_ascii_uppercase() as u8 })
         }
 
         fn to_char(&self) -> char {
@@ -107,11 +104,7 @@ mod words {
 
     impl Display for Word {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-            write!(
-                f,
-                "{}",
-                String::from_iter(self.letters.map(|letter| letter.to_char()))
-            )
+            write!(f, "{}", String::from_iter(self.letters.map(|letter| letter.to_char())))
         }
     }
 
@@ -138,7 +131,6 @@ mod words {
         }
 
         pub fn calculate(guess: Word, target: Word) -> Rule {
-            // optimise
             let mut colours = [Colour::Black; 5];
             let mut used = [false; 5];
             for i in 0..5 {

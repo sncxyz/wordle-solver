@@ -31,7 +31,7 @@ fn main() {
     io::stdin().read_line(&mut input).unwrap();
 }
 
-fn best_guess(words: &Vec<Word>, pool: &Vec<Word>) -> Word {
+fn best_guess(words: &[Word], pool: &[Word]) -> Word {
     let mut lowest = (pool[0], usize::MAX);
     for &guess in pool {
         let mut rules = HashMap::new();

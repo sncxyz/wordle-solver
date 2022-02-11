@@ -2,7 +2,7 @@ use std::fs::File;
 use std::io::{self, BufRead, BufReader};
 
 use std::collections::HashMap;
-use words::{Rule, Word};
+use words::{Pattern, Word};
 
 fn main() {
     println!("Output from Wordle formatted with [B]lack, [Y]ellow, [G]reen");
@@ -15,8 +15,8 @@ fn main() {
             println!("What output did Wordle give you?");
             let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
-            if let Some(rule) = Rule::new(input.trim()) {
-                words.retain(|word| word.fits_rule(guess, rule));
+            if let Some(pattern) = Pattern::new(input.trim()) {
+                words.retain(|word| word.fits_pattern(guess, pattern));
                 match words.len() {
                     0 => println!("No options remain."),
                     1 => println!("The word is \"{}\"", words[0]),
@@ -34,11 +34,11 @@ fn main() {
 fn best_guess(words: &[Word], pool: &[Word]) -> Word {
     let mut lowest = (pool[0], usize::MAX);
     for &guess in pool {
-        let mut rules = HashMap::new();
+        let mut patterns = HashMap::new();
         for &word in words {
-            *rules.entry(Rule::calculate(guess, word)).or_insert(0) += 1;
+            *patterns.entry(Pattern::calculate(guess, word)).or_insert(0) += 1;
         }
-        let score = rules.into_values().map(|count| count * count).sum();
+        let score = patterns.into_values().map(|count| count * count).sum();
         if score < lowest.1 || (score == lowest.1 && words.contains(&guess) && !words.contains(&lowest.0))
         {
             lowest = (guess, score);
@@ -97,8 +97,8 @@ mod words {
             })
         }
 
-        pub fn fits_rule(&self, guess: Word, rule: Rule) -> bool {
-            rule == Rule::calculate(guess, *self)
+        pub fn fits_pattern(&self, guess: Word, pattern: Pattern) -> bool {
+            pattern == Pattern::calculate(guess, *self)
         }
     }
 
@@ -109,12 +109,12 @@ mod words {
     }
 
     #[derive(Clone, Copy, PartialEq, Eq, Hash)]
-    pub struct Rule {
+    pub struct Pattern {
         colours: [Colour; 5],
     }
 
-    impl Rule {
-        pub fn new(values: &str) -> Option<Rule> {
+    impl Pattern {
+        pub fn new(values: &str) -> Option<Pattern> {
             if values.chars().count() != 5 {
                 return None;
             }
@@ -127,10 +127,10 @@ mod words {
                     _ => return None,
                 };
             }
-            Some(Rule { colours })
+            Some(Pattern { colours })
         }
 
-        pub fn calculate(guess: Word, target: Word) -> Rule {
+        pub fn calculate(guess: Word, target: Word) -> Pattern {
             let mut colours = [Colour::Black; 5];
             let mut used = [false; 5];
             for i in 0..5 {
@@ -150,7 +150,7 @@ mod words {
                     }
                 }
             }
-            Rule { colours }
+            Pattern { colours }
         }
     }
 

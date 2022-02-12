@@ -2,8 +2,8 @@ use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
 
-pub trait Solver<'a> {
-    fn new(targets: &'a [Word], pool: &'a [Word]) -> Self;
+pub trait Solver {
+    fn new(targets: Vec<Word>, pool: Vec<Word>) -> Self;
     fn narrow_from_string(&mut self, pattern: &str) -> bool;
     fn narrow_from_pattern(&mut self, pattern: Pattern);
     fn update_guess(&mut self);

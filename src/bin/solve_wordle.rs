@@ -3,14 +3,14 @@ use std::io;
 
 fn main() {
     solve_wordle::<solvers::Version1>(
-        &wordle::get_word_list("targets.txt").unwrap(),
-        &wordle::get_word_list("pool.txt").unwrap(),
+        wordle::get_word_list("targets.txt").unwrap(),
+        wordle::get_word_list("pool.txt").unwrap(),
     );
 }
 
-fn solve_wordle<'a, S>(targets: &'a [Word], pool: &'a [Word])
+fn solve_wordle<S>(targets: Vec<Word>, pool: Vec<Word>)
 where
-    S: Solver<'a>,
+    S: Solver,
 {
     let mut solver = S::new(targets, pool);
     println!("Output from Wordle formatted with [B]lack, [Y]ellow, [G]reen");

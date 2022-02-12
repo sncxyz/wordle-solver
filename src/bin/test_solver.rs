@@ -6,9 +6,9 @@ fn main() {
     test_solver::<solvers::Version1>(); // test a solver (struct) that implements Solver (trait) and holds references to data
 }
 
-fn test_solver<'a, S>()
+fn test_solver<S>()
 where
-    S: Solver<'a>,
+    S: Solver,
 {
     let targets = wordle::get_word_list("targets.txt").unwrap();
     let pool = wordle::get_word_list("pool.txt").unwrap();
@@ -16,7 +16,7 @@ where
     let (mut min, mut max) = (usize::MAX, 0);
     let mut total_time = 0;
     for &target in &targets {
-        let mut solver = S::new(&targets, &pool); // <- BREAKS HERE
+        let mut solver = S::new(targets.clone(), pool.clone()); // <- BREAKS HERE
         let now = Instant::now();
         // solver.update_guess();
         let mut guesses = 1;

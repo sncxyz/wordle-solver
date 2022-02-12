@@ -1,16 +1,17 @@
 use crate::wordle::*;
 use std::collections::HashMap;
+use std::rc::Rc;
 
 pub struct Version1 {
     targets: Vec<Word>,
-    pool: Vec<Word>,
+    pool: Rc<Vec<Word>>,
     guess: Word,
 }
 
 impl Solver for Version1 {
-    fn new(targets: Vec<Word>, pool: Vec<Word>) -> Self {
+    fn new(targets: Rc<Vec<Word>>, pool: Rc<Vec<Word>>) -> Self {
         Version1 {
-            targets,
+            targets: (*targets).clone(),
             pool,
             guess: Word::new(String::from("roate")).unwrap(),
         }
@@ -30,9 +31,9 @@ impl Solver for Version1 {
 
     fn update_guess(&mut self) {
         let mut lowest = (self.pool[0], usize::MAX);
-        for &guess in &self.pool {
+        for &guess in &*self.pool {
             let mut patterns = HashMap::new();
-            for &word in &self.targets {
+            for &word in &*self.targets {
                 *patterns.entry(Pattern::calculate(guess, word)).or_insert(0) += 1;
             }
             let score = patterns.into_values().map(|count| count * count).sum();

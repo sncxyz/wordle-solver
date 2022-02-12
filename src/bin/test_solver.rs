@@ -1,6 +1,7 @@
 use wordle_solver::{solvers, wordle::{self, Solver}};
 use std::time::Instant;
 use std::io;
+use std::rc::Rc;
 
 fn main() {
     test_solver::<solvers::Version1>();
@@ -10,13 +11,13 @@ fn test_solver<S>()
 where
     S: Solver,
 {
-    let targets = wordle::get_word_list("targets.txt").unwrap();
-    let pool = wordle::get_word_list("pool.txt").unwrap();
+    let targets = Rc::new(wordle::get_word_list("targets.txt").unwrap());
+    let pool = Rc::new(wordle::get_word_list("pool.txt").unwrap());
     let mut total_guesses = 0;
     let (mut min, mut max) = (usize::MAX, 0);
     let mut total_time = 0;
-    for &target in &targets {
-        let mut solver = S::new(targets.clone(), pool.clone());
+    for &target in &*targets {
+        let mut solver = S::new(Rc::clone(&targets), Rc::clone(&pool));
         let now = Instant::now();
         // solver.update_guess();
         let mut guesses = 1;

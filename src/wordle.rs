@@ -1,9 +1,10 @@
 use std::fmt::Display;
 use std::fs::File;
 use std::io::{BufRead, BufReader};
+use std::rc::Rc;
 
 pub trait Solver {
-    fn new(targets: Vec<Word>, pool: Vec<Word>) -> Self;
+    fn new(targets: Rc<Vec<Word>>, pool: Rc<Vec<Word>>) -> Self;
     fn narrow_from_string(&mut self, pattern: &str) -> bool;
     fn narrow_from_pattern(&mut self, pattern: Pattern);
     fn update_guess(&mut self);

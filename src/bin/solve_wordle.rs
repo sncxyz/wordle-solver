@@ -1,5 +1,6 @@
 use wordle_solver::{solvers, wordle::{self, Word, Solver}};
 use std::io;
+use std::rc::Rc;
 
 fn main() {
     solve_wordle::<solvers::Version1>(
@@ -12,7 +13,7 @@ fn solve_wordle<S>(targets: Vec<Word>, pool: Vec<Word>)
 where
     S: Solver,
 {
-    let mut solver = S::new(targets, pool);
+    let mut solver = S::new(Rc::new(targets), Rc::new(pool));
     println!("Output from Wordle formatted with [B]lack, [Y]ellow, [G]reen");
     while solver.options() > 1 {
         println!("Guess \"{}\" ({} options)", solver.guess(), solver.options());

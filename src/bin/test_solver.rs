@@ -23,7 +23,7 @@ where
         let mut guesses = 1;
         while solver.guess() != target {
             guesses += 1;
-            solver.narrow_from_pattern(wordle::Pattern::calculate(solver.guess(), target));
+            solver.cull(wordle::Pattern::calculate(solver.guess(), target));
             solver.update_guess();
         }
         let word_time = now.elapsed().as_micros();

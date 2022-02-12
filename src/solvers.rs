@@ -17,15 +17,7 @@ impl Solver for Version1 {
         }
     }
 
-    fn narrow_from_string(&mut self, input: &str) -> bool {
-        if let Some(pattern) = Pattern::new(input) {
-            self.targets.retain(|word| word.fits_pattern(self.guess, pattern));
-            return true;
-        }
-        false
-    }
-
-    fn narrow_from_pattern(&mut self, pattern: Pattern) {
+    fn cull(&mut self, pattern: Pattern) {
         self.targets.retain(|word| word.fits_pattern(self.guess, pattern));
     }
 

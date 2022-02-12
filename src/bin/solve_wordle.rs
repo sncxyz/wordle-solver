@@ -1,4 +1,4 @@
-use wordle_solver::{solvers, wordle::{self, Word, Solver}};
+use wordle_solver::{solvers, wordle::{self, Word, Pattern, Solver}};
 use std::io;
 use std::rc::Rc;
 
@@ -17,11 +17,15 @@ where
     println!("Output from Wordle formatted with [B]lack, [Y]ellow, [G]reen");
     while solver.options() > 1 {
         println!("Guess \"{}\" ({} options)", solver.guess(), solver.options());
-        let mut input = String::new();
-        while !solver.narrow_from_string(input.trim()) {
+        loop {
             println!("What output did Wordle give you?");
-            input = String::new();
+            let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
+            if let Some(pattern) = Pattern::new(input.trim()) {
+                solver.cull(pattern);
+                break;
+            }
+            println!("Invalid input.");
         }
         solver.update_guess();
         match solver.options() {

@@ -5,8 +5,7 @@ use std::rc::Rc;
 
 pub trait Solver {
     fn new(targets: Rc<Vec<Word>>, pool: Rc<Vec<Word>>) -> Self;
-    fn narrow_from_string(&mut self, pattern: &str) -> bool;
-    fn narrow_from_pattern(&mut self, pattern: Pattern);
+    fn cull(&mut self, pattern: Pattern);
     fn update_guess(&mut self);
     fn guess(&self) -> Word;
     fn options(&self) -> usize;

@@ -24,7 +24,10 @@ impl Solver for Version1 {
             self.guess = self.targets[0];
             return;
         }
-        let mut lowest = (self.pool[0], usize::MAX);
+        let mut lowest_pool = (self.pool[0], usize::MAX);
+        let mut lowest_target = (self.pool[0], usize::MAX);
+        let mut target_count = 0;
+        let mut current_target = self.targets.get(0);
         for &guess in &*self.pool {
             let mut patterns = vec![0; 243];
             for &target in &self.targets {
@@ -37,15 +40,18 @@ impl Solver for Version1 {
                 }
             }
             
-            if score < lowest.1
-                || (score == lowest.1
-                    && self.targets.contains(&guess)
-                    && !self.targets.contains(&lowest.0))
-            {
-                lowest = (guess, score);
+            if score < lowest_pool.1 {
+                lowest_pool = (guess, score);
+            }
+            if Some(&guess) == current_target {
+                target_count += 1;
+                current_target = self.targets.get(target_count);
+                if score < lowest_target.1 {
+                    lowest_target = (guess, score);
+                }
             }
         }
-        self.guess = lowest.0;
+        self.guess = if lowest_target.1 == lowest_pool.1 { lowest_target.0 } else { lowest_pool.0 };
     }
 
     fn guess(&self) -> Word {

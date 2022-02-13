@@ -1,16 +1,15 @@
 use crate::wordle::*;
-use std::rc::Rc;
 
 pub struct Version1 {
     targets: Vec<Word>,
-    pool: Rc<Vec<Word>>,
+    pool: Vec<Word>,
     guess: Word,
 }
 
 impl Solver for Version1 {
-    fn new(targets: Rc<Vec<Word>>, pool: Rc<Vec<Word>>) -> Self {
+    fn new(targets: Vec<Word>, pool: Vec<Word>) -> Self {
         Version1 {
-            targets: (*targets).clone(),
+            targets,
             pool,
             guess: Word::new(String::from("roate")).unwrap(),
         }

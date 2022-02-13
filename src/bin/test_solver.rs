@@ -1,23 +1,23 @@
-use wordle_solver::{solvers, wordle::{self, Solver}};
+use wordle_solver::{solvers, wordle::{self, Word, Solver}};
 use std::time::Instant;
 use std::io;
-use std::rc::Rc;
 
 fn main() {
-    test_solver::<solvers::Version1>();
+    test_solver::<solvers::Version1>(
+        wordle::get_word_list("targets.txt").unwrap(), 
+        wordle::get_word_list("pool.txt").unwrap()
+    );
 }
 
-fn test_solver<S>()
+fn test_solver<S>(targets: Vec<Word>, pool: Vec<Word>)
 where
     S: Solver,
 {
-    let targets = Rc::new(wordle::get_word_list("targets.txt").unwrap());
-    let pool = Rc::new(wordle::get_word_list("pool.txt").unwrap());
     let mut total_guesses = 0;
     let (mut min, mut max) = (usize::MAX, 0);
     let mut total_time = 0;
     for &target in &*targets {
-        let mut solver = S::new(Rc::clone(&targets), Rc::clone(&pool));
+        let mut solver = S::new(targets.clone(), pool.clone());
         let now = Instant::now();
         // solver.update_guess();
         let mut guesses = 1;

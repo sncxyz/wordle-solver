@@ -1,5 +1,4 @@
 use crate::wordle::*;
-use std::collections::HashMap;
 use std::rc::Rc;
 
 pub struct Version1 {
@@ -22,13 +21,23 @@ impl Solver for Version1 {
     }
 
     fn update_guess(&mut self) {
+        if self.targets.len() == 1 {
+            self.guess = self.targets[0];
+            return;
+        }
         let mut lowest = (self.pool[0], usize::MAX);
         for &guess in &*self.pool {
-            let mut patterns = HashMap::new();
-            for &word in &*self.targets {
-                *patterns.entry(Pattern::calculate(guess, word)).or_insert(0) += 1;
+            let mut patterns = vec![0; 243];
+            for &target in &self.targets {
+                patterns[Pattern::calculate(guess, target).index()] += 1;
             }
-            let score = patterns.into_values().map(|count| count * count).sum();
+            let mut score = 0;
+            for &count in &patterns {
+                if count > 0 {
+                    score += count * count;
+                }
+            }
+            
             if score < lowest.1
                 || (score == lowest.1
                     && self.targets.contains(&guess)

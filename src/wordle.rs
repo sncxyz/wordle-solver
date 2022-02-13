@@ -67,42 +67,41 @@ impl Word {
 
 impl Display for Word {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            String::from_iter(self.letters.map(|letter| letter.to_char()))
-        )
+        write!(f, "{}", String::from_iter(self.letters.map(|letter| letter.to_char())))
     }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq, Hash)]
 pub struct Pattern {
-    colours: [Colour; 5],
+    value: u8,
 }
 
 impl Pattern {
-    pub fn new(values: &str) -> Option<Pattern> {
-        if values.chars().count() != 5 {
+    pub fn new(input: &str) -> Option<Pattern> {
+        if input.chars().count() != 5 {
             return None;
         }
-        let mut colours = [Colour::Black; 5];
-        for (i, colour) in values.chars().enumerate() {
-            colours[i] = match colour {
-                'B' | 'b' => Colour::Black,
-                'Y' | 'y' => Colour::Yellow,
-                'G' | 'g' => Colour::Green,
+        let mut value = 0;
+        let mut multiplier = 1;
+        for char in input.chars() {
+            value += match char {
+                'B' | 'b' => 0,
+                'Y' | 'y' => multiplier,
+                'G' | 'g' => multiplier * 2,
                 _ => return None,
             };
+            multiplier *= 3;
         }
-        Some(Pattern { colours })
+        Some(Pattern { value })
     }
 
     pub fn calculate(guess: Word, target: Word) -> Pattern {
-        let mut colours = [Colour::Black; 5];
+        let mut value = 0;
+        let mut multiplier = 1;
         let mut used = [false; 5];
         for i in 0..5 {
             if guess.letters[i] == target.letters[i] {
-                colours[i] = Colour::Green;
+                value += multiplier * 2;
             } else {
                 for j in 0..5 {
                     if i != j
@@ -110,20 +109,18 @@ impl Pattern {
                         && guess.letters[i] == target.letters[j]
                         && !used[j]
                     {
-                        colours[i] = Colour::Yellow;
+                        value += multiplier;
                         used[j] = true;
                         break;
                     }
                 }
             }
+            multiplier *= 3;
         }
-        Pattern { colours }
+        Pattern { value }
     }
-}
 
-#[derive(Clone, Copy, PartialEq, Eq, Hash)]
-enum Colour {
-    Black,
-    Yellow,
-    Green,
+    pub fn index(&self) -> usize {
+        self.value as usize
+    }
 }

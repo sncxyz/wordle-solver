@@ -1,5 +1,6 @@
+use crate::words::*;
 use crate::solvers;
-use std::fmt::Display;
+pub use crate::words::get_pattern;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
 use std::time::Instant;
@@ -71,7 +72,7 @@ impl Environment {
         let mut patterns = Vec::with_capacity(words.len() * targets.len());
         for word in &words {
             for &target in &targets {
-                patterns.push(calculate_pattern(word.word, words[target as usize].word));
+                patterns.push(calculate_pattern(word.get_word(), words[target as usize].get_word()));
             }
         }
 
@@ -155,7 +156,7 @@ impl Environment {
     }
 
     pub fn get_word(&self, id: u16) -> Option<Word> {
-        Some(self.words.get(id as usize)?.word)
+        Some(self.words.get(id as usize)?.get_word())
     }
 
     fn get_pattern(&self, guess: u16, target: u16) -> Option<u8> {
@@ -236,136 +237,5 @@ impl<'a> Wordle<'a> {
 
     pub fn is_target(&self, id: u16) -> Option<bool> {
         Some(self.e.words.get(id as usize)?.is_target())
-    }
-}
-
-fn calculate_pattern(guess: Word, target: Word) -> u8 {
-    let mut value = 0;
-    let mut multiplier = 1;
-    let mut used = [false; 5];
-    for i in 0..5 {
-        if guess.letters[i] == target.letters[i] {
-            value += multiplier * 2;
-        } else {
-            for j in 0..5 {
-                if i != j
-                    && guess.letters[j] != target.letters[j]
-                    && guess.letters[i] == target.letters[j]
-                    && !used[j]
-                {
-                    value += multiplier;
-                    used[j] = true;
-                    break;
-                }
-            }
-        }
-        multiplier *= 3;
-    }
-    value
-}
-
-pub fn get_pattern(input: &str) -> Option<u8> {
-    if input.chars().count() != 5 {
-        return None;
-    }
-    let mut value = 0;
-    let mut multiplier = 1;
-    for char in input.chars() {
-        value += match char {
-            'B' | 'b' => 0,
-            'Y' | 'y' => multiplier,
-            'G' | 'g' => multiplier * 2,
-            _ => return None,
-        };
-        multiplier *= 3;
-    }
-    Some(value)
-}
-
-#[derive(Clone)]
-struct WordInfo {
-    word: Word,
-    target: u16,
-}
-
-impl WordInfo {
-    fn new(word: Word, target: Option<usize>) -> WordInfo {
-        WordInfo {
-            word,
-            target: match target {
-                None => u16::MAX,
-                Some(index) => index as u16,
-            },
-        }
-    }
-
-    fn from_bytes(bytes: &[u8]) -> WordInfo {
-        WordInfo {
-            word: Word::from_bytes(&bytes[0..5]),
-            target: u16::from_be_bytes([bytes[5], bytes[6]]),
-        }
-    }
-
-    fn to_bytes(&self) -> [u8; 7] {
-        let l = self.word.letters;
-        let t = self.target.to_be_bytes();
-        [l[0], l[1], l[2], l[3], l[4], t[0], t[1]]
-    }
-
-    fn get_target(&self) -> Option<usize> {
-        match self.target {
-            u16::MAX => None,
-            x => Some(x as usize),
-        }
-    }
-
-    fn is_target(&self) -> bool {
-        self.get_target().is_some()
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Word {
-    letters: [u8; 5],
-}
-
-impl Word {
-    fn new(string: &str) -> Option<Word> {
-        if string.chars().count() != 5 {
-            return None;
-        }
-        let mut chars = string.chars();
-        Some(Word {
-            letters: [
-                Word::letter(chars.next().unwrap())?,
-                Word::letter(chars.next().unwrap())?,
-                Word::letter(chars.next().unwrap())?,
-                Word::letter(chars.next().unwrap())?,
-                Word::letter(chars.next().unwrap())?,
-            ],
-        })
-    }
-
-    fn from_bytes(b: &[u8]) -> Word {
-        Word {
-            letters: [b[0], b[1], b[2], b[3], b[4]],
-        }
-    }
-
-    fn letter(c: char) -> Option<u8> {
-        if !c.is_ascii_alphabetic() {
-            return None;
-        }
-        Some(c.to_ascii_uppercase() as u8)
-    }
-}
-
-impl Display for Word {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{}",
-            String::from_iter(self.letters.map(|letter| letter as char))
-        )
     }
 }

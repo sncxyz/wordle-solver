@@ -7,7 +7,7 @@ use std::time::Instant;
 pub struct Environment {
     words: Vec<WordInfo>,
     targets: Vec<u16>,
-    patterns: Vec<Pattern>,
+    patterns: Vec<u8>,
     solver: u8,
     starting_guess: u16,
 }
@@ -71,7 +71,7 @@ impl Environment {
         let mut patterns = Vec::with_capacity(words.len() * targets.len());
         for word in &words {
             for &target in &targets {
-                patterns.push(Pattern::calculate(word.word, words[target as usize].word));
+                patterns.push(calculate_pattern(word.word, words[target as usize].word));
             }
         }
 
@@ -104,7 +104,7 @@ impl Environment {
         data.extend((targets.len() as u16).to_be_bytes()); // length of target list
         data.extend(words.into_iter().map(|word| word.to_bytes()).flatten()); // word list
         data.extend(targets.into_iter().map(|target| target.to_be_bytes()).flatten()); // target list
-        data.extend(patterns.into_iter().map(|pattern| pattern.value)); // pattern list
+        data.extend(patterns.into_iter()); // pattern list
 
         println!("Complete in {}ms", millis(now));
         println!();
@@ -139,7 +139,7 @@ impl Environment {
             .chunks(2)
             .map(|bytes| u16::from_be_bytes([bytes[0], bytes[1]]))
             .collect();
-        let patterns: Vec<_> = data[i..].iter().map(|&value| Pattern { value }).collect();
+        let patterns = data[i..].to_vec();
 
         Some(Environment {
             words,
@@ -158,7 +158,7 @@ impl Environment {
         Some(self.words.get(id as usize)?.word)
     }
 
-    fn get_pattern(&self, guess: u16, target: u16) -> Option<Pattern> {
+    fn get_pattern(&self, guess: u16, target: u16) -> Option<u8> {
         Some(*self.patterns.get(
             guess as usize * self.targets.len()
                 + self.words.get(target as usize)?.get_target()? as usize,
@@ -175,6 +175,10 @@ impl Environment {
     fn parse_word_list(list: Vec<String>) -> Option<Vec<Word>> {
         list.into_iter().map(|line| Word::new(&line)).collect()
     }
+}
+
+fn millis(instant: Instant) -> f64 {
+    (instant.elapsed().as_nanos() as f64) / 1000000f64
 }
 
 pub struct Wordle<'a> {
@@ -206,7 +210,7 @@ impl<'a> Wordle<'a> {
         self.e.starting_guess
     }
 
-    pub fn cull(&mut self, guess: u16, pattern: Pattern) {
+    pub fn cull(&mut self, guess: u16, pattern: u8) {
         self.targets
             .retain(|&target| self.e.get_pattern(guess, target).unwrap() == pattern);
     }
@@ -215,7 +219,7 @@ impl<'a> Wordle<'a> {
         solvers::solver(self.e.solver).unwrap()(&self)
     }
 
-    pub fn get_pattern(&self, guess: u16, target: u16) -> Option<Pattern> {
+    pub fn get_pattern(&self, guess: u16, target: u16) -> Option<u8> {
         self.e.get_pattern(guess, target)
     }
 
@@ -235,58 +239,47 @@ impl<'a> Wordle<'a> {
     }
 }
 
-#[derive(Clone, Copy, PartialEq, Eq)]
-pub struct Pattern {
-    value: u8,
-}
-
-impl Pattern {
-    pub fn new(input: &str) -> Option<Pattern> {
-        if input.chars().count() != 5 {
-            return None;
-        }
-        let mut value = 0;
-        let mut multiplier = 1;
-        for char in input.chars() {
-            value += match char {
-                'B' | 'b' => 0,
-                'Y' | 'y' => multiplier,
-                'G' | 'g' => multiplier * 2,
-                _ => return None,
-            };
-            multiplier *= 3;
-        }
-        Some(Pattern { value })
-    }
-
-    fn calculate(guess: Word, target: Word) -> Pattern {
-        let mut value = 0;
-        let mut multiplier = 1;
-        let mut used = [false; 5];
-        for i in 0..5 {
-            if guess.letters[i] == target.letters[i] {
-                value += multiplier * 2;
-            } else {
-                for j in 0..5 {
-                    if i != j
-                        && guess.letters[j] != target.letters[j]
-                        && guess.letters[i] == target.letters[j]
-                        && !used[j]
-                    {
-                        value += multiplier;
-                        used[j] = true;
-                        break;
-                    }
+fn calculate_pattern(guess: Word, target: Word) -> u8 {
+    let mut value = 0;
+    let mut multiplier = 1;
+    let mut used = [false; 5];
+    for i in 0..5 {
+        if guess.letters[i] == target.letters[i] {
+            value += multiplier * 2;
+        } else {
+            for j in 0..5 {
+                if i != j
+                    && guess.letters[j] != target.letters[j]
+                    && guess.letters[i] == target.letters[j]
+                    && !used[j]
+                {
+                    value += multiplier;
+                    used[j] = true;
+                    break;
                 }
             }
-            multiplier *= 3;
         }
-        Pattern { value }
+        multiplier *= 3;
     }
+    value
+}
 
-    pub fn index(&self) -> usize {
-        self.value as usize
+pub fn get_pattern(input: &str) -> Option<u8> {
+    if input.chars().count() != 5 {
+        return None;
     }
+    let mut value = 0;
+    let mut multiplier = 1;
+    for char in input.chars() {
+        value += match char {
+            'B' | 'b' => 0,
+            'Y' | 'y' => multiplier,
+            'G' | 'g' => multiplier * 2,
+            _ => return None,
+        };
+        multiplier *= 3;
+    }
+    Some(value)
 }
 
 #[derive(Clone)]
@@ -375,8 +368,4 @@ impl Display for Word {
             String::from_iter(self.letters.map(|letter| letter as char))
         )
     }
-}
-
-fn millis(instant: Instant) -> f64 {
-    (instant.elapsed().as_nanos() as f64) / 1000000f64
 }

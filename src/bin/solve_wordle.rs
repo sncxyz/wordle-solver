@@ -16,7 +16,7 @@ fn main() {
             println!("What output did Wordle give you?");
             let mut input = String::new();
             io::stdin().read_line(&mut input).unwrap();
-            if let Some(pattern) = Pattern::new(input.trim()) {
+            if let Some(pattern) = get_pattern(input.trim()) {
                 wordle.cull(guess, pattern);
                 break;
             }

@@ -12,7 +12,7 @@ fn one(wordle: &Wordle) -> u16 {
     for id in wordle.words() {
         let mut patterns = vec![0; 243];
         for &target in wordle.targets() {
-            patterns[wordle.get_pattern(id, target).unwrap().index()] += 1;
+            patterns[wordle.get_pattern(id, target).unwrap() as usize] += 1;
         }
         let score = patterns.into_iter().map(|count| count * count).sum();
         if score < lowest.1

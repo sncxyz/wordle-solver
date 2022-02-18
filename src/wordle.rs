@@ -117,7 +117,6 @@ impl Environment {
         println!("Complete in {}ms", millis(now));
         println!();
         println!("All complete in {}ms", millis(start));
-        println!();
 
         Some(())
     }

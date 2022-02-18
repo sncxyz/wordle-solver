@@ -29,7 +29,7 @@ fn main() {
     println!();
     println!("{} wordles solved in {:.3?}s", e.targets().len(), total_time_millis / 1000f64);
     println!("average time per word: {:.3?}ms", total_time_millis / (e.targets().len() as f64));
-    println!("average time per guess: {:.3?}ms", total_time_millis / (total_guesses as f64));
+    println!("average time per guess: {:.3?}ms", total_time_millis / ((total_guesses - e.targets().len()) as f64));
     println!("between {} and {} guesses, average {:.5?}", min, max, (total_guesses as f64) / (e.targets().len() as f64));
 
     let mut input = String::new();

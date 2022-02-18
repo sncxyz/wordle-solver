@@ -1,44 +1,36 @@
-use wordle_solver::{solvers, wordle::{self, Word, Solver}};
-use std::time::Instant;
 use std::io;
+use std::time::Instant;
+use wordle_solver::wordle::*;
 
 fn main() {
-    test_solver::<solvers::Version1>(
-        wordle::get_word_list("targets.txt").unwrap(), 
-        wordle::get_word_list("pool.txt").unwrap()
-    );
-}
-
-fn test_solver<S>(targets: Vec<Word>, pool: Vec<Word>)
-where
-    S: Solver,
-{
+    let e = Environment::new().unwrap();
     let mut total_guesses = 0;
     let (mut min, mut max) = (usize::MAX, 0);
     let mut total_time = 0;
-    for &target in &*targets {
-        let mut solver = S::new(targets.clone(), pool.clone());
+    for &target in e.targets() {
+        let mut wordle = Wordle::new(&e);
+        let mut guess = wordle.starting_guess();
         let now = Instant::now();
-        // solver.update_guess();
+        // guess = wordle.next_guess();
         let mut guesses = 1;
-        while solver.guess() != target {
+        while guess != target {
             guesses += 1;
-            solver.cull(wordle::Pattern::calculate(solver.guess(), target));
-            solver.update_guess();
+            wordle.cull(guess, wordle.get_pattern(guess, target).unwrap());
+            guess = wordle.next_guess();
         }
         let word_time = now.elapsed().as_micros();
         total_time += word_time;
-        println!("{}: {} guesses, {}ms", target, guesses, (word_time as f64) / (1000f64));
+        println!("{}: {} guesses, {}ms", e.get_word(target).unwrap(), guesses, (word_time as f64) / 1000f64);
         total_guesses += guesses;
         min = min.min(guesses);
         max = max.max(guesses);
     }
-    let total_time_millis = (total_time as f64) / (1000f64);
+    let total_time_millis = (total_time as f64) / 1000f64;
     println!();
-    println!("{} wordles solved in {:.3?}s", targets.len(), total_time_millis / 1000f64);
-    println!("average time per word: {:.3?}ms", total_time_millis / (targets.len() as f64));
+    println!("{} wordles solved in {:.3?}s", e.targets().len(), total_time_millis / 1000f64);
+    println!("average time per word: {:.3?}ms", total_time_millis / (e.targets().len() as f64));
     println!("average time per guess: {:.3?}ms", total_time_millis / (total_guesses as f64));
-    println!("between {} and {} guesses, average {:.5?}", min, max, (total_guesses as f64) / (targets.len() as f64));
+    println!("between {} and {} guesses, average {:.5?}", min, max, (total_guesses as f64) / (e.targets().len() as f64));
 
     let mut input = String::new();
     io::stdin().read_line(&mut input).unwrap();

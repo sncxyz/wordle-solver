@@ -1,2 +1,2 @@
-pub mod solvers;
+mod solvers;
 pub mod wordle;

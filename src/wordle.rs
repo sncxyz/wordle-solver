@@ -314,7 +314,7 @@ impl WordInfo {
     }
 
     fn to_bytes(&self) -> [u8; 7] {
-        let l = self.word.to_bytes();
+        let l = self.word.letters;
         let t = self.target.to_be_bytes();
         [l[0], l[1], l[2], l[3], l[4], t[0], t[1]]
     }
@@ -333,7 +333,7 @@ impl WordInfo {
 
 #[derive(Clone, Copy, PartialEq, Eq)]
 pub struct Word {
-    letters: [Letter; 5],
+    letters: [u8; 5],
 }
 
 impl Word {
@@ -344,29 +344,26 @@ impl Word {
         let mut chars = string.chars();
         Some(Word {
             letters: [
-                Letter::from_char(chars.next().unwrap())?,
-                Letter::from_char(chars.next().unwrap())?,
-                Letter::from_char(chars.next().unwrap())?,
-                Letter::from_char(chars.next().unwrap())?,
-                Letter::from_char(chars.next().unwrap())?,
+                Word::letter(chars.next().unwrap())?,
+                Word::letter(chars.next().unwrap())?,
+                Word::letter(chars.next().unwrap())?,
+                Word::letter(chars.next().unwrap())?,
+                Word::letter(chars.next().unwrap())?,
             ],
         })
     }
 
-    fn from_bytes(bytes: &[u8]) -> Word {
+    fn from_bytes(b: &[u8]) -> Word {
         Word {
-            letters: [
-                Letter { value: bytes[0] },
-                Letter { value: bytes[1] },
-                Letter { value: bytes[2] },
-                Letter { value: bytes[3] },
-                Letter { value: bytes[4] },
-            ],
+            letters: [b[0], b[1], b[2], b[3], b[4]],
         }
     }
 
-    fn to_bytes(&self) -> [u8; 5] {
-        self.letters.map(|letter| letter.value)
+    fn letter(c: char) -> Option<u8> {
+        if !c.is_ascii_alphabetic() {
+            return None;
+        }
+        Some(c.to_ascii_uppercase() as u8)
     }
 }
 
@@ -375,28 +372,8 @@ impl Display for Word {
         write!(
             f,
             "{}",
-            String::from_iter(self.letters.map(|letter| letter.to_char()))
+            String::from_iter(self.letters.map(|letter| letter as char))
         )
-    }
-}
-
-#[derive(Clone, Copy, PartialEq, Eq)]
-struct Letter {
-    value: u8,
-}
-
-impl Letter {
-    fn from_char(c: char) -> Option<Letter> {
-        if !c.is_ascii_alphabetic() {
-            return None;
-        }
-        Some(Letter {
-            value: c.to_ascii_uppercase() as u8,
-        })
-    }
-
-    fn to_char(&self) -> char {
-        self.value as char
     }
 }
 

@@ -1,3 +1,3 @@
 mod solvers;
-mod words;
 pub mod wordle;
+mod words;

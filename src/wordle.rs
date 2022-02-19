@@ -3,7 +3,6 @@ use crate::solvers;
 pub use crate::words::get_pattern;
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
-use std::time::Instant;
 
 pub struct Environment {
     words: Vec<WordInfo>,
@@ -14,41 +13,22 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn rebuild(pool: &str, targets: &str, solver: u8) -> Option<()> {
-        let start = Instant::now();
-
-        println!("Reading input...");
-        let now = Instant::now();
-
-        let mut pool = Environment::get_word_list(pool)?;
-        let target_words = Environment::parse_word_list(Environment::get_word_list(targets)?)?;
-
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("Sorting list...");
-        let now = Instant::now();
+    pub fn rebuild(pool: &str, targets: &str, solver: u8) -> Result<(), &'static str> {
+        let mut pool = Environment::get_word_list(pool).ok_or_else(|| "Failed to read words file.")?;
+        let target_words = Environment::get_word_list(targets).ok_or_else(|| "Failed to read targets file.")?;
+        let target_words = Environment::parse_word_list(target_words).ok_or_else(|| "Targets file in incorrect format.")?;
 
         pool.sort_unstable();
-
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("Removing duplicates...");
-        let now = Instant::now();
-
-        let mut pool = Environment::parse_word_list(pool)?;
+        let mut pool = Environment::parse_word_list(pool).ok_or_else(|| "Words file in incorrect format.")?;
         pool.dedup();
+        let pool = pool;
 
         if pool.len() > u16::MAX as usize {
-            return None;
+            return Err("Words list too long.");
         }
 
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("Processing words...");
-        let now = Instant::now();
-
         let mut words = Vec::with_capacity(pool.len());
-        let mut targets = Vec::with_capacity(target_words.len());
+        let mut targets = Vec::with_capacity(target_words.len().min(pool.len()));
 
         let mut i = 0;
         for (id, word) in pool.into_iter().enumerate() {
@@ -64,22 +44,12 @@ impl Environment {
             ));
         }
 
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("Generating patterns...");
-        let now = Instant::now();
-
         let mut patterns = Vec::with_capacity(words.len() * targets.len());
         for word in &words {
             for &target in &targets {
                 patterns.push(calculate_pattern(word.get_word(), words[target as usize].get_word()));
             }
         }
-
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("Calculating starting guess...");
-        let now = Instant::now();
 
         let e = Environment {
             words: words.clone(),
@@ -89,15 +59,10 @@ impl Environment {
             starting_guess: 0,
         };
         let wordle = Wordle::new(&e);
-        let starting_guess = wordle.next_guess();
-
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("Forming data...");
-        let now = Instant::now();
+        let starting_guess = wordle.next_guess().ok_or_else(|| "Invalid solver ID.")?;
 
         let mut data: Vec<u8> = Vec::with_capacity(
-            1 + 2 + 2 + 2 + words.len() * 7 + targets.len() * 2 + patterns.len(),
+            7 + words.len() * 7 + targets.len() * 2 + patterns.len(),
         );
         data.push(solver); // solver
         data.extend(starting_guess.to_be_bytes()); // starting guess
@@ -107,33 +72,33 @@ impl Environment {
         data.extend(targets.into_iter().map(|target| target.to_be_bytes()).flatten()); // target list
         data.extend(patterns.into_iter()); // pattern list
 
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("Writing file...");
-        let now = Instant::now();
+        fs::write("saved/data.bin", data).map_err(|_| "Failed to write data file.")?;
 
-        fs::write("saved/data.bin", data).unwrap();
-
-        println!("Complete in {}ms", millis(now));
-        println!();
-        println!("All complete in {}ms", millis(start));
-
-        Some(())
+        Ok(())
     }
 
     pub fn new() -> Option<Environment> {
         let data = fs::read("saved/data.bin").ok()?;
 
+        if data.len() < 7 {
+            return None;
+        }
+
         let solver = data[0];
         let starting_guess = u16::from_be_bytes([data[1], data[2]]);
         let words_len = u16::from_be_bytes([data[3], data[4]]) as usize;
         let targets_len = u16::from_be_bytes([data[5], data[6]]) as usize;
+
+        if data.len() != 7 + words_len * 7 + targets_len * 2 + words_len * targets_len {
+            return None;
+        }
+
         let mut i = 7;
         let j = i + words_len * 7;
         let words: Vec<_> = data[i..j]
             .chunks(7)
             .map(|bytes| WordInfo::from_bytes(bytes))
-            .collect();
+            .collect::<Option<_>>()?;
         i = j + targets_len * 2;
         let targets: Vec<_> = data[j..i]
             .chunks(2)
@@ -177,10 +142,6 @@ impl Environment {
     }
 }
 
-fn millis(instant: Instant) -> f64 {
-    (instant.elapsed().as_nanos() as f64) / 1000000f64
-}
-
 pub struct Wordle<'a> {
     e: &'a Environment,
     targets: Vec<u16>,
@@ -212,11 +173,11 @@ impl<'a> Wordle<'a> {
 
     pub fn cull(&mut self, guess: u16, pattern: u8) {
         self.targets
-            .retain(|&target| self.e.get_pattern(guess, target).unwrap() == pattern);
+            .retain(|&target| self.e.get_pattern(guess, target) == Some(pattern));
     }
 
-    pub fn next_guess(&self) -> u16 {
-        solvers::solver(self.e.solver).unwrap()(&self)
+    pub fn next_guess(&self) -> Option<u16> {
+        solvers::solver(self.e.solver)?(&self)
     }
 
     pub fn get_pattern(&self, guess: u16, target: u16) -> Option<u8> {

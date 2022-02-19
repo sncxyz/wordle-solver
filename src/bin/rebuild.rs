@@ -1,6 +1,15 @@
+use std::time::Instant;
+use wordle_solver::wordle::Environment;
+use std::io;
+
 fn main() {
-    wordle_solver::wordle::Environment::rebuild("input/pool.txt", "input/targets.txt", 0).unwrap();
-    
+    let start = Instant::now();
+    if let Err(message) = Environment::rebuild("input/pool.txt", "input/targets.txt", 0) {
+        println!("{}", message);
+    } else {
+        println!("Completed in {}ms", start.elapsed().as_millis());
+    }
+
     let mut input = String::new();
-    std::io::stdin().read_line(&mut input).unwrap();
+    io::stdin().read_line(&mut input).unwrap();
 }

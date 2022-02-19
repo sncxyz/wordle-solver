@@ -60,11 +60,11 @@ impl WordInfo {
         }
     }
 
-    pub fn from_bytes(bytes: &[u8]) -> WordInfo {
-        WordInfo {
-            word: Word::from_bytes(&bytes[0..5]),
+    pub fn from_bytes(bytes: &[u8]) -> Option<WordInfo> {
+        Some(WordInfo {
+            word: Word::new(std::str::from_utf8(&bytes[0..5]).ok()?)?,
             target: u16::from_be_bytes([bytes[5], bytes[6]]),
-        }
+        })
     }
 
     pub fn to_bytes(&self) -> [u8; 7] {
@@ -109,12 +109,6 @@ impl Word {
                 Word::letter(chars.next().unwrap())?,
             ],
         })
-    }
-
-    fn from_bytes(b: &[u8]) -> Word {
-        Word {
-            letters: [b[0], b[1], b[2], b[3], b[4]],
-        }
     }
 
     fn letter(c: char) -> Option<u8> {

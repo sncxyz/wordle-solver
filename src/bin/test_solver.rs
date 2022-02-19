@@ -3,7 +3,16 @@ use std::time::Instant;
 use wordle_solver::wordle::*;
 
 fn main() {
-    let e = Environment::new().unwrap();
+    if test().is_none() {
+        println!("Data file missing or corrupted. Please rebuild.");
+    }
+
+    let mut input = String::new();
+    io::stdin().read_line(&mut input).unwrap();
+}
+
+fn test() -> Option<()> {
+    let e = Environment::new()?;
     let mut total_guesses = 0;
     let (mut min, mut max) = (usize::MAX, 0);
     let mut total_time = 0;
@@ -15,12 +24,15 @@ fn main() {
         let mut guesses = 1;
         while guess != target {
             guesses += 1;
-            wordle.cull(guess, wordle.get_pattern(guess, target).unwrap());
-            guess = wordle.next_guess();
+            wordle.cull(guess, wordle.get_pattern(guess, target)?);
+            guess = wordle.next_guess()?;
+            if guesses == 250 {
+                break;
+            }
         }
         let word_time = now.elapsed().as_micros();
         total_time += word_time;
-        println!("{}: {} guesses, {}ms", e.get_word(target).unwrap(), guesses, (word_time as f64) / 1000f64);
+        println!("{}: {} guesses, {}ms", e.get_word(target)?, guesses, (word_time as f64) / 1000f64);
         total_guesses += guesses;
         min = min.min(guesses);
         max = max.max(guesses);
@@ -32,6 +44,5 @@ fn main() {
     println!("average time per guess: {:.3?}ms", total_time_millis / ((total_guesses - e.targets().len()) as f64));
     println!("between {} and {} guesses, average {:.5?}", min, max, (total_guesses as f64) / (e.targets().len() as f64));
 
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
+    Some(())
 }

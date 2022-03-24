@@ -6,7 +6,6 @@ pub use words::get_pattern;
 
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
-use std::path::PathBuf;
 
 pub struct Environment {
     words: Vec<WordInfo>,
@@ -17,7 +16,7 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn build(pool: PathBuf, targets: PathBuf, solver: u8) -> Result<(), Error> {
+    pub fn build(pool: &str, targets: &str, solver: u8) -> Result<(), Error> {
         let mut pool = Environment::get_word_list(pool).ok_or_else(|| Error::PoolRead)?;
         let target_words = Environment::get_word_list(targets).ok_or_else(|| Error::TargetsRead)?;
         let target_words = Environment::parse_word_list(target_words).ok_or_else(|| Error::TargetsFormat)?;
@@ -134,7 +133,7 @@ impl Environment {
         )?)
     }
 
-    fn get_word_list(path: PathBuf) -> Option<Vec<String>> {
+    fn get_word_list(path: &str) -> Option<Vec<String>> {
         BufReader::new(File::open(path).ok()?)
             .lines()
             .collect::<Result<_, _>>()

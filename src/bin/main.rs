@@ -1,4 +1,3 @@
-use std::path::PathBuf;
 use std::env::args;
 use wordle_solver::Error;
 
@@ -39,12 +38,12 @@ fn main() {
             let targets;
             let solver: u8;
             if args().count() == 2 {
-                pool = PathBuf::from("input/pool.txt");
-                targets = PathBuf::from("input/targets.txt");
+                pool = String::from("input/pool.txt");
+                targets = String::from("input/targets.txt");
                 solver = 0;
             } else {
-                pool = PathBuf::from(args().nth(2).unwrap());
-                targets = PathBuf::from(args().nth(3).unwrap());
+                pool = args().nth(2).unwrap();
+                targets = args().nth(3).unwrap();
                 solver = match args().nth(4).unwrap().parse() {
                     Ok(s) => s,
                     _ => {
@@ -53,7 +52,7 @@ fn main() {
                     }
                 }
             }
-            if let Err(e) = wordle_solver::run::build(pool, targets, solver) {
+            if let Err(e) = wordle_solver::run::build(&pool, &targets, solver) {
                 print_error(e);
             }
         }

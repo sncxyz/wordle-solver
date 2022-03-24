@@ -1,16 +1,7 @@
 use std::io;
-use wordle_solver::wordle::*;
+use crate::wordle::*;
 
-fn main() {
-    if solve().is_none() {
-        println!("Data file missing or corrupted. Please rebuild.");
-    }
-
-    let mut input = String::new();
-    io::stdin().read_line(&mut input).unwrap();
-}
-
-fn solve() -> Option<()> {
+pub fn solve() -> Option<()> {
     let e = Environment::new()?;
     let mut wordle = Wordle::new(&e);
     let mut guess = wordle.starting_guess();

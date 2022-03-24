@@ -1,4 +1,4 @@
-use crate::wordle::Wordle;
+use super::Wordle;
 
 pub fn solver(id: u8) -> Option<impl Fn(&Wordle) -> Option<u16>> {
     [one].get(id as usize)

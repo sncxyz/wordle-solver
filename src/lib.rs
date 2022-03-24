@@ -1,3 +1,3 @@
-mod solvers;
-pub mod wordle;
-mod words;
+pub mod run;
+mod wordle;
+pub use wordle::Error;

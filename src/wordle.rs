@@ -1,8 +1,12 @@
-use crate::words::*;
-use crate::solvers;
-pub use crate::words::get_pattern;
+mod words;
+mod solvers;
+
+use words::*;
+pub use words::get_pattern;
+
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
+use std::path::PathBuf;
 
 pub struct Environment {
     words: Vec<WordInfo>,
@@ -13,18 +17,18 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn rebuild(pool: &str, targets: &str, solver: u8) -> Result<(), &'static str> {
-        let mut pool = Environment::get_word_list(pool).ok_or_else(|| "Failed to read words file.")?;
-        let target_words = Environment::get_word_list(targets).ok_or_else(|| "Failed to read targets file.")?;
-        let target_words = Environment::parse_word_list(target_words).ok_or_else(|| "Targets file in incorrect format.")?;
+    pub fn build(pool: PathBuf, targets: PathBuf, solver: u8) -> Result<(), Error> {
+        let mut pool = Environment::get_word_list(pool).ok_or_else(|| Error::PoolRead)?;
+        let target_words = Environment::get_word_list(targets).ok_or_else(|| Error::TargetsRead)?;
+        let target_words = Environment::parse_word_list(target_words).ok_or_else(|| Error::TargetsFormat)?;
 
         pool.sort_unstable();
-        let mut pool = Environment::parse_word_list(pool).ok_or_else(|| "Words file in incorrect format.")?;
+        let mut pool = Environment::parse_word_list(pool).ok_or_else(|| Error::PoolFormat)?;
         pool.dedup();
         let pool = pool;
 
         if pool.len() > u16::MAX as usize {
-            return Err("Words list too long.");
+            return Err(Error::PoolLength);
         }
 
         let mut words = Vec::with_capacity(pool.len());
@@ -59,7 +63,7 @@ impl Environment {
             starting_guess: 0,
         };
         let wordle = Wordle::new(&e);
-        let starting_guess = wordle.next_guess().ok_or_else(|| "Invalid solver ID.")?;
+        let starting_guess = wordle.next_guess().ok_or_else(|| Error::SolverID)?;
 
         let mut data: Vec<u8> = Vec::with_capacity(
             7 + words.len() * 7 + targets.len() * 2 + patterns.len(),
@@ -72,7 +76,7 @@ impl Environment {
         data.extend(targets.into_iter().map(|target| target.to_be_bytes()).flatten()); // target list
         data.extend(patterns.into_iter()); // pattern list
 
-        fs::write("saved/data.bin", data).map_err(|_| "Failed to write data file.")?;
+        fs::write("saved/data.bin", data).map_err(|_| Error::DataWrite)?;
 
         Ok(())
     }
@@ -130,7 +134,7 @@ impl Environment {
         )?)
     }
 
-    fn get_word_list(path: &str) -> Option<Vec<String>> {
+    fn get_word_list(path: PathBuf) -> Option<Vec<String>> {
         BufReader::new(File::open(path).ok()?)
             .lines()
             .collect::<Result<_, _>>()
@@ -198,4 +202,16 @@ impl<'a> Wordle<'a> {
     pub fn is_target(&self, id: u16) -> Option<bool> {
         Some(self.e.words.get(id as usize)?.is_target())
     }
+}
+
+#[derive(Debug)]
+pub enum Error {
+    PoolRead,
+    TargetsRead,
+    PoolFormat,
+    TargetsFormat,
+    PoolLength,
+    SolverID,
+    DataWrite,
+    DataRead,
 }

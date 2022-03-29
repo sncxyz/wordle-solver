@@ -203,7 +203,6 @@ impl<'a> Wordle<'a> {
     }
 }
 
-#[derive(Debug)]
 pub enum Error {
     PoolRead,
     TargetsRead,

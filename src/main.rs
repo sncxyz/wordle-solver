@@ -2,8 +2,6 @@ use std::env::args;
 use wordle_solver::Error;
 
 fn main() {
-    println!();
-
     let command = match Command::get() {
         Some(c) => c,
         None => {
@@ -34,18 +32,20 @@ fn main() {
             }
         }
         Command::Build => {
-            let pool;
-            let targets;
-            let solver: u8;
-            if args().count() == 2 {
-                pool = String::from("input/pool.txt");
-                targets = String::from("input/targets.txt");
-                solver = 0;
-            } else {
-                pool = args().nth(2).unwrap();
-                targets = args().nth(3).unwrap();
-                solver = match args().nth(4).unwrap().parse() {
-                    Ok(s) => s,
+            let mut pool = String::from("input/pool.txt");
+            let mut targets = String::from("input/targets.txt");
+            let mut solver: u8 = 0;
+            if args().count() == 5 {
+                match args().nth(2).unwrap() {
+                    p if &p == "d" => (),
+                    path => pool = path,
+                }
+                match args().nth(3).unwrap() {
+                    p if &p == "d" => (),
+                    path => targets = path,
+                }
+                match args().nth(4).unwrap().parse() {
+                    Ok(s) => solver = s,
                     _ => {
                         println!("Expected integer solver ID.");
                         return;
@@ -56,7 +56,7 @@ fn main() {
                 print_error(e);
             }
         }
-    };
+    }
 }
 
 fn help() {

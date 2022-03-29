@@ -1,5 +1,5 @@
-use std::time::Instant;
 use crate::wordle::*;
+use std::time::Instant;
 
 pub fn test() -> Option<()> {
     let e = Environment::new()?;
@@ -24,10 +24,25 @@ pub fn test() -> Option<()> {
         max = max.max(guesses);
     }
     let time = now.elapsed().as_nanos() as f64 / 1000000f64;
-    println!("{} wordles solved in {:.3?}s", e.targets().len(), time / 1000f64);
-    println!("Average time per word: {:.3?}ms", time / (e.targets().len() as f64));
-    println!("Average time per guess: {:.3?}ms", time / ((total_guesses - e.targets().len()) as f64));
-    println!("Between {} and {} guesses, average {:.7?}", min, max, (total_guesses as f64) / (e.targets().len() as f64));
+    println!(
+        "{} wordles solved in {:.3?}s",
+        e.targets().len(),
+        time / 1000f64
+    );
+    println!(
+        "Average time per word: {:.3?}ms",
+        time / (e.targets().len() as f64)
+    );
+    println!(
+        "Average time per guess: {:.3?}ms",
+        time / ((total_guesses - e.targets().len()) as f64)
+    );
+    println!(
+        "Between {} and {} guesses, average {:.7?}",
+        min,
+        max,
+        (total_guesses as f64) / (e.targets().len() as f64)
+    );
 
     Some(())
 }

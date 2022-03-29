@@ -83,10 +83,6 @@ impl WordInfo {
             x => Some(x as usize),
         }
     }
-
-    pub fn is_target(&self) -> bool {
-        self.get_target().is_some()
-    }
 }
 
 #[derive(Clone, Copy, PartialEq, Eq)]

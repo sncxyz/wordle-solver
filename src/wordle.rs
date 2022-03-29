@@ -1,8 +1,8 @@
-mod words;
 mod solvers;
+mod words;
 
-use words::*;
 pub use words::get_pattern;
+use words::*;
 
 use std::fs::{self, File};
 use std::io::{BufRead, BufReader};
@@ -19,7 +19,8 @@ impl Environment {
     pub fn build(pool: &str, targets: &str, solver: u8) -> Result<(), Error> {
         let mut pool = Environment::get_word_list(pool).ok_or_else(|| Error::PoolRead)?;
         let target_words = Environment::get_word_list(targets).ok_or_else(|| Error::TargetsRead)?;
-        let target_words = Environment::parse_word_list(target_words).ok_or_else(|| Error::TargetsFormat)?;
+        let target_words =
+            Environment::parse_word_list(target_words).ok_or_else(|| Error::TargetsFormat)?;
 
         pool.sort_unstable();
         let mut pool = Environment::parse_word_list(pool).ok_or_else(|| Error::PoolFormat)?;
@@ -50,7 +51,10 @@ impl Environment {
         let mut patterns = Vec::with_capacity(words.len() * targets.len());
         for word in &words {
             for &target in &targets {
-                patterns.push(calculate_pattern(word.get_word(), words[target as usize].get_word()));
+                patterns.push(calculate_pattern(
+                    word.get_word(),
+                    words[target as usize].get_word(),
+                ));
             }
         }
 
@@ -64,15 +68,19 @@ impl Environment {
         let wordle = Wordle::new(&e);
         let starting_guess = wordle.next_guess().ok_or_else(|| Error::SolverID)?;
 
-        let mut data: Vec<u8> = Vec::with_capacity(
-            7 + words.len() * 7 + targets.len() * 2 + patterns.len(),
-        );
+        let mut data: Vec<u8> =
+            Vec::with_capacity(7 + words.len() * 7 + targets.len() * 2 + patterns.len());
         data.push(solver); // solver
         data.extend(starting_guess.to_be_bytes()); // starting guess
         data.extend((words.len() as u16).to_be_bytes()); // length of word list
         data.extend((targets.len() as u16).to_be_bytes()); // length of target list
         data.extend(words.into_iter().map(|word| word.to_bytes()).flatten()); // word list
-        data.extend(targets.into_iter().map(|target| target.to_be_bytes()).flatten()); // target list
+        data.extend(
+            targets
+                .into_iter()
+                .map(|target| target.to_be_bytes())
+                .flatten(),
+        ); // target list
         data.extend(patterns.into_iter()); // pattern list
 
         fs::write("saved/data.bin", data).map_err(|_| Error::DataWrite)?;
@@ -158,8 +166,19 @@ impl<'a> Wordle<'a> {
         }
     }
 
-    pub fn words(&self) -> impl IntoIterator<Item = u16> {
-        0..self.e.words.len() as u16
+    pub fn words(&self) -> impl IntoIterator<Item = (u16, bool)> + '_ {
+        let mut t = 0;
+        (0..self.e.words.len() as u16).map(move |id| {
+            (
+                id,
+                if self.targets.get(t) == Some(&id) {
+                    t += 1;
+                    true
+                } else {
+                    false
+                },
+            )
+        })
     }
 
     pub fn targets(&self) -> &[u16] {
@@ -196,10 +215,6 @@ impl<'a> Wordle<'a> {
 
     pub fn options(&self) -> u16 {
         self.targets.len() as u16
-    }
-
-    pub fn is_target(&self, id: u16) -> Option<bool> {
-        Some(self.e.words.get(id as usize)?.is_target())
     }
 }
 

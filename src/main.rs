@@ -11,7 +11,7 @@ fn main() {
             return;
         }
     };
-    
+
     if !command.correct_num_args() {
         println!("Incorrect number of arguments.");
         return;
@@ -67,16 +67,19 @@ fn help() {
 }
 
 fn print_error(error: Error) {
-    println!("{}", match error {
-        Error::PoolRead => "Failed to read words file.",
-        Error::TargetsRead => "Failed to read targets file.",
-        Error::PoolFormat => "Words file formatted incorrectly.",
-        Error::TargetsFormat => "Targets file formatted incorrectly.",
-        Error::PoolLength => "Words file too long.",
-        Error::SolverID => "Invalid solver ID.",
-        Error::DataWrite => "Failed to write data file.",
-        Error::DataRead => "Data file missing or corrupted. Please build.",
-    });
+    println!(
+        "{}",
+        match error {
+            Error::PoolRead => "Failed to read words file.",
+            Error::TargetsRead => "Failed to read targets file.",
+            Error::PoolFormat => "Words file formatted incorrectly.",
+            Error::TargetsFormat => "Targets file formatted incorrectly.",
+            Error::PoolLength => "Words file too long.",
+            Error::SolverID => "Invalid solver ID.",
+            Error::DataWrite => "Failed to write data file.",
+            Error::DataRead => "Data file missing or corrupted. Please build.",
+        }
+    );
 }
 
 enum Command {

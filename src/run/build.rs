@@ -1,5 +1,5 @@
-use std::time::Instant;
 use crate::wordle;
+use std::time::Instant;
 
 pub fn build(pool: &str, targets: &str, solver: u8) -> Result<(), wordle::Error> {
     let start = Instant::now();

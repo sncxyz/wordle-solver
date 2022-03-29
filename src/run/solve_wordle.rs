@@ -1,5 +1,5 @@
-use std::io;
 use crate::wordle::*;
+use std::io;
 
 pub fn solve() -> Option<()> {
     let e = Environment::new()?;
@@ -7,7 +7,11 @@ pub fn solve() -> Option<()> {
     let mut guess = wordle.starting_guess();
     println!("Output from Wordle formatted with [B]lack, [Y]ellow, [G]reen");
     while wordle.options() > 1 {
-        println!("Guess \"{}\" ({} options)", wordle.get_word(guess)?, wordle.options());
+        println!(
+            "Guess \"{}\" ({} options)",
+            wordle.get_word(guess)?,
+            wordle.options()
+        );
         loop {
             println!("What output did Wordle give you?");
             let mut input = String::new();
@@ -20,7 +24,10 @@ pub fn solve() -> Option<()> {
         }
         match wordle.options() {
             0 => println!("No options remain."),
-            1 => println!("The word is \"{}\"", wordle.get_word(wordle.only_remaining().unwrap())?),
+            1 => println!(
+                "The word is \"{}\"",
+                wordle.get_word(wordle.only_remaining().unwrap())?
+            ),
             _ => guess = wordle.next_guess()?,
         }
     }

@@ -156,29 +156,33 @@ impl Environment {
 pub struct Wordle<'a> {
     e: &'a Environment,
     targets: Vec<u16>,
+    words: Vec<(u16, bool)>,
 }
 
 impl<'a> Wordle<'a> {
     pub fn new(e: &Environment) -> Wordle {
+        let mut i = 0;
+        let words = (0..e.words.len() as u16)
+            .map(|id| {
+                (id, {
+                    if e.targets.get(i) == Some(&id) {
+                        i += 1;
+                        true
+                    } else {
+                        false
+                    }
+                })
+            })
+            .collect();
         Wordle {
             e,
             targets: e.targets.clone(),
+            words,
         }
     }
 
-    pub fn words(&self) -> impl IntoIterator<Item = (u16, bool)> + '_ {
-        let mut t = 0;
-        (0..self.e.words.len() as u16).map(move |id| {
-            (
-                id,
-                if self.targets.get(t) == Some(&id) {
-                    t += 1;
-                    true
-                } else {
-                    false
-                },
-            )
-        })
+    pub fn words(&self) -> &[(u16, bool)] {
+        &self.words
     }
 
     pub fn targets(&self) -> &[u16] {
@@ -196,6 +200,16 @@ impl<'a> Wordle<'a> {
     pub fn cull(&mut self, guess: u16, pattern: u8) {
         self.targets
             .retain(|&target| self.e.get_pattern(guess, target) == Some(pattern));
+        let mut i = 0;
+        for (id, is_target) in self.words.iter_mut() {
+            if *is_target {
+                if self.targets.get(i) == Some(id) {
+                    i += 1;
+                } else {
+                    *is_target = false;
+                }
+            }
+        }
     }
 
     pub fn next_guess(&self) -> Option<u16> {

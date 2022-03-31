@@ -213,7 +213,7 @@ impl<'a> Wordle<'a> {
     }
 
     pub fn next_guess(&self) -> Option<u16> {
-        solvers::solver(self.e.solver)?(&self)
+        Some(solvers::solver(self.e.solver)?(&self))
     }
 
     pub fn get_pattern(&self, guess: u16, target: u16) -> Option<u8> {

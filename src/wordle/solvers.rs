@@ -16,10 +16,7 @@ fn zero(wordle: &Wordle) -> u16 {
         .map(|&(id, is_target)| {
             let mut patterns = vec![0usize; 243];
             for &target in wordle.targets() {
-                match wordle.get_pattern(id, target) {
-                    Some(p) if p < 243 => patterns[p as usize] += 1,
-                    _ => (),
-                }
+                patterns[wordle.get_pattern(id, target).unwrap() as usize] += 1;
             }
             let mut score = 0;
             for &count in &patterns {
@@ -46,10 +43,7 @@ fn one(wordle: &Wordle) -> u16 {
         .map(|&(id, is_target)| {
             let mut patterns = vec![0usize; 243];
             for &target in wordle.targets() {
-                match wordle.get_pattern(id, target) {
-                    Some(p) if p < 243 => patterns[p as usize] += 1,
-                    _ => (),
-                }
+                patterns[wordle.get_pattern(id, target).unwrap() as usize] += 1;
             }
             let mut entropy = if is_target { 1.0 / total } else { 0.0 };
             for &count in &patterns {

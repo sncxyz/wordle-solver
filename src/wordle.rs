@@ -1,5 +1,5 @@
-mod solvers;
-mod words;
+use crate::solvers;
+use crate::words;
 
 pub use words::get_pattern;
 use words::*;
@@ -100,7 +100,10 @@ impl Environment {
         let words_len = u16::from_be_bytes([data[3], data[4]]) as usize;
         let targets_len = u16::from_be_bytes([data[5], data[6]]) as usize;
 
-        if data.len() != 7 + words_len * 7 + targets_len * 2 + words_len * targets_len || starting_guess as usize >= words_len || targets_len > words_len {
+        if data.len() != 7 + words_len * 7 + targets_len * 2 + words_len * targets_len
+            || starting_guess as usize >= words_len
+            || targets_len > words_len
+        {
             return None;
         }
 
@@ -118,7 +121,10 @@ impl Environment {
         let patterns = data[i..].to_vec();
 
         for i in 0..targets_len {
-            if targets[i] as usize >= words_len || words[targets[i] as usize].get_target() != Some(i) || (i > 0 && targets[i] <= targets[i - 1]) {
+            if targets[i] as usize >= words_len
+                || words[targets[i] as usize].get_target() != Some(i)
+                || (i > 0 && targets[i] <= targets[i - 1])
+            {
                 return None;
             }
         }
@@ -148,8 +154,7 @@ impl Environment {
 
     fn get_pattern(&self, guess: u16, target: u16) -> Option<u8> {
         Some(*self.patterns.get(
-            guess as usize * self.targets.len()
-                + self.words.get(target as usize)?.get_target()?,
+            guess as usize * self.targets.len() + self.words.get(target as usize)?.get_target()?,
         )?)
     }
 
@@ -165,6 +170,7 @@ impl Environment {
     }
 }
 
+#[derive(Clone)]
 pub struct Wordle<'a> {
     e: &'a Environment,
     targets: Vec<u16>,
@@ -176,12 +182,15 @@ impl<'a> Wordle<'a> {
         let mut i = 0;
         let mut words = Vec::with_capacity(e.words.len());
         for id in 0..e.words.len() as u16 {
-            words.push((id, if e.targets.get(i) == Some(&id) {
-                i += 1;
-                true
-            } else {
-                false
-            }));
+            words.push((
+                id,
+                if e.targets.get(i) == Some(&id) {
+                    i += 1;
+                    true
+                } else {
+                    false
+                },
+            ));
         }
         Wordle {
             e,

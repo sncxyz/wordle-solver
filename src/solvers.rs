@@ -58,32 +58,3 @@ fn entropy(wordle: &Wordle) -> u16 {
         .unwrap()
         .0
 }
-
-// fn entropy_depth_two(wordle: &Wordle) -> u16 {
-//     if let Some(id) = wordle.only_remaining() {
-//         return id;
-//     }
-//     let total = wordle.targets().len() as f64;
-//     wordle
-//         .words()
-//         .par_iter()
-//         .map(|&(id, is_target)| {
-//             let mut patterns = vec![0usize; 243];
-//             for &target in wordle.targets() {
-//                 patterns[wordle.get_pattern(id, target).unwrap() as usize] += 1;
-//             }
-//             let mut entropy = if is_target { 1.0 / total } else { 0.0 };
-//             for i in 0u8..243 {
-//                 if patterns[i as usize] > 0 {
-//                     let p = patterns[i as usize] as f64 / total;
-//                     let mut w = wordle.clone();
-//                     w.cull(id, i);
-//                     entropy += p * (-p.log2() + entropy_depth_one(&w).1);
-//                 }
-//             }
-//             (id, entropy)
-//         })
-//         .max_by(|&(_, a), (_, b)| a.partial_cmp(b).unwrap())
-//         .unwrap()
-//         .0
-// }

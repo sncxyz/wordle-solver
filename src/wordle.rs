@@ -170,7 +170,6 @@ impl Environment {
     }
 }
 
-#[derive(Clone)]
 pub struct Wordle<'a> {
     e: &'a Environment,
     targets: Vec<u16>,

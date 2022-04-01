@@ -16,26 +16,26 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn build(pool: &str, targets: &str, solver: u8) -> Result<(), Error> {
-        let mut pool = Environment::get_word_list(pool).ok_or_else(|| Error::PoolRead)?;
+    pub fn build(full: &str, targets: &str, solver: u8) -> Result<(), Error> {
+        let mut full = Environment::get_word_list(full).ok_or_else(|| Error::FullRead)?;
         let target_words = Environment::get_word_list(targets).ok_or_else(|| Error::TargetsRead)?;
         let target_words =
             Environment::parse_word_list(target_words).ok_or_else(|| Error::TargetsFormat)?;
 
-        pool.sort_unstable();
-        let mut pool = Environment::parse_word_list(pool).ok_or_else(|| Error::PoolFormat)?;
-        pool.dedup();
-        let pool = pool;
+        full.sort_unstable();
+        let mut full = Environment::parse_word_list(full).ok_or_else(|| Error::FullFormat)?;
+        full.dedup();
+        let full = full;
 
-        if pool.len() > u16::MAX as usize {
-            return Err(Error::PoolLength);
+        if full.len() > u16::MAX as usize {
+            return Err(Error::FullLength);
         }
 
-        let mut words = Vec::with_capacity(pool.len());
-        let mut targets = Vec::with_capacity(target_words.len().min(pool.len()));
+        let mut words = Vec::with_capacity(full.len());
+        let mut targets = Vec::with_capacity(target_words.len().min(full.len()));
 
         let mut i = 0;
-        for (id, word) in pool.into_iter().enumerate() {
+        for (id, word) in full.into_iter().enumerate() {
             words.push(WordInfo::new(
                 word,
                 if target_words.contains(&word) {
@@ -250,11 +250,11 @@ impl<'a> Wordle<'a> {
 }
 
 pub enum Error {
-    PoolRead,
+    FullRead,
     TargetsRead,
-    PoolFormat,
+    FullFormat,
     TargetsFormat,
-    PoolLength,
+    FullLength,
     SolverID,
     DataWrite,
     DataRead,

@@ -32,13 +32,13 @@ fn main() {
             }
         }
         Command::Build => {
-            let mut full = String::from("words/full.txt");
+            let mut words = String::from("words/allowed.txt");
             let mut targets = String::from("words/targets.txt");
             let mut solver: u8 = 0;
             if args().count() == 5 {
                 match args().nth(2).unwrap() {
                     p if &p == "d" => (),
-                    path => full = path,
+                    path => words = path,
                 }
                 match args().nth(3).unwrap() {
                     p if &p == "d" => (),
@@ -52,7 +52,7 @@ fn main() {
                     }
                 }
             }
-            if let Err(e) = wordle_solver::run::build(&full, &targets, solver) {
+            if let Err(e) = wordle_solver::run::build(&words, &targets, solver) {
                 print_error(e);
             }
         }
@@ -70,11 +70,11 @@ fn print_error(error: Error) {
     println!(
         "{}",
         match error {
-            Error::FullRead => "Failed to read words file.",
+            Error::WordsRead => "Failed to read words file.",
             Error::TargetsRead => "Failed to read targets file.",
-            Error::FullFormat => "Words file formatted incorrectly.",
+            Error::WordsFormat => "Words file formatted incorrectly.",
             Error::TargetsFormat => "Targets file formatted incorrectly.",
-            Error::FullLength => "Words file too long.",
+            Error::WordsLength => "Words file too long.",
             Error::SolverID => "Invalid solver ID.",
             Error::DataWrite => "Failed to write data file.",
             Error::DataRead => "Data file missing or corrupted. Please build.",

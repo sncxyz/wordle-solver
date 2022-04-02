@@ -16,26 +16,26 @@ pub struct Environment {
 }
 
 impl Environment {
-    pub fn build(full: &str, targets: &str, solver: u8) -> Result<(), Error> {
-        let mut full = Environment::get_word_list(full).ok_or_else(|| Error::FullRead)?;
+    pub fn build(allowed: &str, targets: &str, solver: u8) -> Result<(), Error> {
+        let mut allowed = Environment::get_word_list(allowed).ok_or_else(|| Error::WordsRead)?;
         let target_words = Environment::get_word_list(targets).ok_or_else(|| Error::TargetsRead)?;
         let target_words =
             Environment::parse_word_list(target_words).ok_or_else(|| Error::TargetsFormat)?;
 
-        full.sort_unstable();
-        let mut full = Environment::parse_word_list(full).ok_or_else(|| Error::FullFormat)?;
-        full.dedup();
-        let full = full;
+            allowed.sort_unstable();
+        let mut allowed = Environment::parse_word_list(allowed).ok_or_else(|| Error::WordsFormat)?;
+        allowed.dedup();
+        let allowed = allowed;
 
-        if full.len() > u16::MAX as usize {
-            return Err(Error::FullLength);
+        if allowed.len() > u16::MAX as usize {
+            return Err(Error::WordsLength);
         }
 
-        let mut words = Vec::with_capacity(full.len());
-        let mut targets = Vec::with_capacity(target_words.len().min(full.len()));
+        let mut words = Vec::with_capacity(allowed.len());
+        let mut targets = Vec::with_capacity(target_words.len().min(words.len()));
 
         let mut i = 0;
-        for (id, word) in full.into_iter().enumerate() {
+        for (id, word) in allowed.into_iter().enumerate() {
             words.push(WordInfo::new(
                 word,
                 if target_words.contains(&word) {
@@ -250,11 +250,11 @@ impl<'a> Wordle<'a> {
 }
 
 pub enum Error {
-    FullRead,
+    WordsRead,
     TargetsRead,
-    FullFormat,
+    WordsFormat,
     TargetsFormat,
-    FullLength,
+    WordsLength,
     SolverID,
     DataWrite,
     DataRead,

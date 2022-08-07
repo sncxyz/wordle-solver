@@ -1,1 +1,1 @@
-Solves the daily puzzles at https://www.powerlanguage.co.uk/wordle/
+Solves the daily puzzles at https://www.nytimes.com/games/wordle/index.html
